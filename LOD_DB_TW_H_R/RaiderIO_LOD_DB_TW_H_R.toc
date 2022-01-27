@@ -1,4 +1,4 @@
-## Interface: 90005
+## Interface: 90105
 ## Author: cqwrteur
 ## Title: Raider.IO LOD Database TW Raid Horde
 ## LoadOnDemand: 1
