@@ -1,0 +1,10 @@
+## Interface: 90005
+## Author: cqwrteur
+## Title: Raider.IO LOD Database KR Raid Horde
+## LoadOnDemand: 1
+## X-RAIDER-IO-LOD: 2
+## X-RAIDER-IO-LOD-FACTION: Horde
+## X-RAIDER-IO-LOD-REQUIRE-RIO: 1
+
+../RaiderIO/db/db_raiding_kr_horde_characters.lua
+../RaiderIO/db/db_raiding_kr_horde_lookup.lua

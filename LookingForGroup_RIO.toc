@@ -1,0 +1,14 @@
+## Interface: 90105
+## Author: cqwrteur
+## Title: LookingForGroup Raider.IO
+## X-LFG-OPT: 0
+## LoadOnDemand: 1
+## Dependencies: LookingForGroup_Options
+## OptionalDeps: LibRaiderIO, LibRaiderIO_Debugger
+
+Libs\LibRaiderIO\LibRaiderIO.lua
+
+config.lua
+indicator.lua
+filter.lua
+tooltip.lua

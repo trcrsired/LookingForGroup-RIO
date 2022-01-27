@@ -1,0 +1,10 @@
+## Interface: 90005
+## Author: cqwrteur
+## Title: Raider.IO LOD Database KR Raid Alliance
+## LoadOnDemand: 1
+## X-RAIDER-IO-LOD: 2
+## X-RAIDER-IO-LOD-FACTION: Alliance
+## X-RAIDER-IO-LOD-REQUIRE-RIO: 1
+
+../RaiderIO/db/db_raiding_kr_alliance_characters.lua
+../RaiderIO/db/db_raiding_kr_alliance_lookup.lua

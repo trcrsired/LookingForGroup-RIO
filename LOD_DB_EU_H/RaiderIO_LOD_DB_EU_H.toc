@@ -1,0 +1,10 @@
+## Interface: 90005
+## Author: cqwrteur
+## Title: Raider.IO LOD Database EU M+ Horde
+## LoadOnDemand: 1
+## X-RAIDER-IO-LOD: 3
+## X-RAIDER-IO-LOD-FACTION: Horde
+## X-RAIDER-IO-LOD-REQUIRE-RIO: 1
+
+../RaiderIO/db/db_eu_horde_characters.lua
+../RaiderIO/db/db_eu_horde_lookup.lua
