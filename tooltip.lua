@@ -123,15 +123,7 @@ LFG_OPT.Register("applicant_tooltips",nil,function(_,entry,profile)
 		return
 	end
 	local cache = {}
-	return function(val)
-		local info = C_LFGList.GetApplicantInfo(val)
-		for i=1,info.numMembers do
-			if i ~= 1 then
-				GameTooltip:AddLine(" ")
-			end
-			local name = C_LFGList.GetApplicantMemberInfo(val,i)
-			GameTooltip:AddLine(name)
-			encounters(nil,cache,groupID,categoryID,shortName,name)
-		end
+	return function(val,i,name)
+		encounters(nil,cache,groupID,categoryID,shortName,name)
 	end
 end)
