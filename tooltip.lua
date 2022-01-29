@@ -113,16 +113,17 @@ function LFG_OPT.handle_encounters(rse,cache,info,groupID,categoryID,shortName)
 	return orig_handle_encounters(rse,cache,info,groupID,categoryID,shortName)
 end
 
-LFG_OPT.Register("applicant_tooltips",nil,function(val,entry,profile)
+LFG_OPT.Register("applicant_tooltips",nil,function(entry,profile)
 	if profile.rio_disable then
 		return
 	end
-	local fullName, shortName, categoryID, groupID = C_LFGList.GetActivityInfo(entry.activityID)
+	local activity_infotb = C_LFGList.GetActivityInfoTable(entry.activityID)
+	local shortName, categoryID, groupID = activity_infotb.shortName,activity_infotb.categoryID,activity_infotb.groupFinderActivityGroupID
 	if categoryID ~= 2 and categoryID ~= 3 then
 		return
 	end
 	local cache = {}
-	return function(val,entry,profile)
+	return function(val)
 		local info = C_LFGList.GetApplicantInfo(val)
 		for i=1,info.numMembers do
 			if i ~= 1 then

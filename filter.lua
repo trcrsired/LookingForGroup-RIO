@@ -41,10 +41,11 @@ local function io_max_score(rio_max_score,raw)
 end
 
 local function io_elite_raid(info,raw1,raw2)
-	local fullname,shortname,category,group = C_LFGList.GetActivityInfo(info.activityID)
-	local difficulty,count,bosses = RIO.raid_group(raw1,group,shortname)
+	local activity_infotb = C_LFGList.GetActivityInfoTable(info.activityID)
+	local shortname,group = activity_infotb.shortName,activity_infotb.groupFinderActivityGroupID
+	local _,count,bosses = RIO.raid_group(raw1,group,shortname)
 	local done = count==bosses
-	local difficulty,count,bosses = RIO.raid_group(raw2,group,shortname)
+	local _,count,bosses = RIO.raid_group(raw2,group,shortname)
 	if done ~= (count == bosses) then
 		return 1
 	end
@@ -63,7 +64,8 @@ end,function(profile)
 end)
 
 LFG_OPT.RegisterSimpleFilterExpensive("find",function(info,profile,player_raw)
-	local fullname,shortname,category,group = C_LFGList.GetActivityInfo(info.activityID)
+	local activity_infotb = C_LFGList.GetActivityInfoTable(info.activityID)
+	local group = activity_infotb.group
 	local rio_dungeon_id = RIO.group_ids[group]
 	if not rio_dungeon_id then return end
 	local dg = 0
@@ -107,8 +109,7 @@ end
 
 local function applicant_trigger(value,category,profile,entryinfo)
 	if value and not profile.rio_disable then
-		local fullName, shortName, categoryID, groupID = C_LFGList.GetActivityInfo(entryinfo.activityID)
-		if categoryID == category then
+		if C_LFGList.GetActivityInfoTable(info.activityID).categoryID == category then
 			return value
 		end
 	end
@@ -127,7 +128,7 @@ end,function(profile,entryinfo)
 end)
 
 LFG_OPT.RegisterSimpleApplicantFilter("s",function(applicantID,i,profile,rio_elitist_level,entryinfo,info,cache)
-	local fullname,shortname,category,group = C_LFGList.GetActivityInfo(entryinfo.activityID)
+	local group = C_LFGList.GetActivityInfoTable(entryinfo.activityID).groupFinderActivityGroupID
 	local rio_dungeon_id = RIO.group_ids[group]
 	if not rio_dungeon_id then return end
 	local raw = LFG_RIO.cache_app_info(C_LFGList.GetApplicantMemberInfo(applicantID,i),1,cache)
