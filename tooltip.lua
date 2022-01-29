@@ -113,7 +113,7 @@ function LFG_OPT.handle_encounters(rse,cache,info,groupID,categoryID,shortName)
 	return orig_handle_encounters(rse,cache,info,groupID,categoryID,shortName)
 end
 
-LFG_OPT.Register("applicant_tooltips",nil,function(entry,profile)
+LFG_OPT.Register("applicant_tooltips",nil,function(_,entry,profile)
 	if profile.rio_disable then
 		return
 	end
