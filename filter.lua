@@ -1,5 +1,4 @@
 local RIO = LibStub:GetLibrary("LibRaiderIO")
-local LFG = LibStub("AceAddon-3.0"):GetAddon("LookingForGroup")
 local LFG_OPT = LibStub("AceAddon-3.0"):GetAddon("LookingForGroup_Options")
 local LFG_RIO = LFG_OPT:GetModule("RaiderIO")
 
