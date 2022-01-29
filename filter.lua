@@ -109,7 +109,7 @@ end
 
 local function applicant_trigger(value,category,profile,entryinfo)
 	if value and not profile.rio_disable then
-		if C_LFGList.GetActivityInfoTable(info.activityID).categoryID == category then
+		if C_LFGList.GetActivityInfoTable(entryinfo.activityID).categoryID == category then
 			return value
 		end
 	end
