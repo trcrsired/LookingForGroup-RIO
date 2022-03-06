@@ -2,11 +2,11 @@ local RIO = LibStub:NewLibrary("LibRaiderIO",3)
 if not RIO then return end
 RIO.instances =
 {
+{282,2,11}, -- Sepulcher of the First Ones
 {271,2,10}, -- Sanctum of Domination
-{267,2,10}, -- Castle Nathria
 }
 
-RIO.dungeons = {261,264,266,263,265,259,260,262}
+RIO.dungeons = {261,264,266,263,265,259,260,262,280,281}
 
 RIO.raid_types = 7
 RIO.score_types = 4
