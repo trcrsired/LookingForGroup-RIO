@@ -170,9 +170,9 @@ local function co_label(self)
 						end
 					end
 				end
-				local luptb=RIO.lookups[1]
-				concat[#concat+1] = format("\n%s\n|cff0000ff%.0f {",luptb.date,raw)
-				local rd8=raw/8
+				local luptb=raw.faction_info.lookups[1]
+				concat[#concat+1] = format("\n%s\n|cff0000ff%.0f {",luptb.date,raw.indexing)
+				local rd8=raw.indexing/8
 				local lu = luptb.lookup[1]
 				for i=0,luptb.recordSizeInBytes-1 do
 					if i ~= 0 then
@@ -220,7 +220,7 @@ local function co_label(self)
 						concat[#concat+1] = "\n"
 					end
 				end
-				local luptb=RIO.lookups[2]
+				local luptb=raw.faction_info.lookups[2]
 				concat[#concat+1] = format("\n%s\n|cff0000ff{%.0f",luptb.date,raw[1])
 				for i=2,#raw do
 					concat[#concat+1] = format(",%.0f",raw[i])
