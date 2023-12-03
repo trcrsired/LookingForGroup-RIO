@@ -2,11 +2,35 @@ local RIO = LibStub:NewLibrary("LibRaiderIO",3)
 if not RIO then return end
 RIO.instances =
 {
-{282,2,11}, -- Sepulcher of the First Ones
-{271,2,10}, -- Sanctum of Domination
+{313,2,9}, -- Aberrus
+{319,2,9}, -- Amirdrassil
 }
 
-RIO.dungeons = {261,264,266,263,265,259,260,262,280,281}
+RIO.dungeons = {
+54,
+59,
+61,
+12,
+11,
+115,
+114,
+113,
+118,
+120,
+137,
+142,
+138,
+145,
+307,
+309,
+308,
+303,
+305,
+302,
+306,
+304,
+316,
+317}
 
 RIO.raid_types = 7
 RIO.score_types = 4
@@ -47,7 +71,7 @@ function RIO.AddProvider(provider)
 			lookups = {},
 			faction_name = RIO.this_faction
 		}
-		RIO.factions[RIO.this_faction] = factthis	
+		RIO.factions[RIO.this_faction] = factthis
 	end
 	if db then
 		factthis.characters[data] = provider
@@ -80,7 +104,7 @@ function RIO.raw(data,player,server,pool)
 					if metadata and region == tonumber(metadata) and
 						(GetAddOnMetadata(i, "X-RAIDER-IO-LOD-REQUIRE-RIO") ~= "1" or raiderio_exist) then
 						local original_RaiderIO = RaiderIO
-						RIO.this_faction = GetAddOnMetadata(i, "X-RAIDER-IO-LOD-FACTION")
+						RIO.this_faction = GetAddOnMetadata(i, "X-RAIDER-IO-LOD-FACTION") or 0
 						RaiderIO = RIO
 						LoadAddOn(i)
 						RIO.this_faction = nil
@@ -121,8 +145,10 @@ function RIO.raw(data,player,server,pool)
 			else
 				pool = {}
 			end
-			pool.faction_name = k
-			pool.faction_info = factthis
+			if k~=0 then
+				pool.faction_name = k
+				pool.faction_info = factthis
+			end
 			if data == 1 then	-- dungeo
 				pool.indexing = (server_info[1] + (first - 2) * lookup.recordSizeInBytes )*8
 			else

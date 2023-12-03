@@ -1,8 +1,8 @@
 ## Interface: 100200
 ## Author: cqwrteur
-## Title: Raider.IO LOD Database TW Raiding
+## Title: RIO LOD TW Raiding
 ## LoadOnDemand: 1
-## X-RAIDER-IO-LOD: 3
+## X-RAIDER-IO-LOD: 4
 ## X-RAIDER-IO-LOD-REQUIRE-RIO: 1
 ## X-RAIDER-IO-LOD-Type: Raiding
 

@@ -1,8 +1,8 @@
 ## Interface: 100200
 ## Author: cqwrteur
-## Title: Raider.IO LOD Database US Recruitment
+## Title: RIO LOD US Recruitment
 ## LoadOnDemand: 1
-## X-RAIDER-IO-LOD: 3
+## X-RAIDER-IO-LOD: 1
 ## X-RAIDER-IO-LOD-REQUIRE-RIO: 1
 ## X-RAIDER-IO-LOD-Type: Recruitment
 

@@ -1,6 +1,6 @@
 ## Interface: 100200
 ## Author: cqwrteur
-## Title: Raider.IO LOD Database EU Mythic+
+## Title: RIO LOD EU Mythic+
 ## LoadOnDemand: 1
 ## X-RAIDER-IO-LOD: 3
 ## X-RAIDER-IO-LOD-REQUIRE-RIO: 1
