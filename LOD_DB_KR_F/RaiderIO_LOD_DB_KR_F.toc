@@ -1,0 +1,10 @@
+## Interface: 100200
+## Author: cqwrteur
+## Title: Raider.IO LOD Database KR Recruitment
+## LoadOnDemand: 1
+## X-RAIDER-IO-LOD: 3
+## X-RAIDER-IO-LOD-REQUIRE-RIO: 1
+## X-RAIDER-IO-LOD-Type: Recruitment
+
+../RaiderIO/db/db_recruitment_kr_characters.lua
+../RaiderIO/db/db_recruitment_kr_lookup.lua

@@ -1,0 +1,10 @@
+## Interface: 100200
+## Author: cqwrteur
+## Title: Raider.IO LOD Database EU Raiding
+## LoadOnDemand: 1
+## X-RAIDER-IO-LOD: 3
+## X-RAIDER-IO-LOD-REQUIRE-RIO: 1
+## X-RAIDER-IO-LOD-Type: Raiding
+
+../RaiderIO/db/db_raiding_eu_characters.lua
+../RaiderIO/db/db_raiding_eu_lookup.lua

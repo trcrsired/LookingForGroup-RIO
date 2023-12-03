@@ -1,19 +1,16 @@
 package-as: LookingForGroup_RIO
 
 move-folders:
-	LookingForGroup_RIO/LOD_DB_EU_A: RaiderIO_LOD_DB_EU_A
-	LookingForGroup_RIO/LOD_DB_EU_A_R: RaiderIO_LOD_DB_EU_A_R
-	LookingForGroup_RIO/LOD_DB_EU_H: RaiderIO_LOD_DB_EU_H
-	LookingForGroup_RIO/LOD_DB_EU_H_R: RaiderIO_LOD_DB_EU_H_R
-	LookingForGroup_RIO/LOD_DB_KR_A: RaiderIO_LOD_DB_KR_A
-	LookingForGroup_RIO/LOD_DB_KR_A_R: RaiderIO_LOD_DB_KR_A_R
-	LookingForGroup_RIO/LOD_DB_KR_H: RaiderIO_LOD_DB_KR_H
-	LookingForGroup_RIO/LOD_DB_KR_H_R: RaiderIO_LOD_DB_KR_H_R
-	LookingForGroup_RIO/LOD_DB_TW_A: RaiderIO_LOD_DB_TW_A
-	LookingForGroup_RIO/LOD_DB_TW_A_R: RaiderIO_LOD_DB_TW_A_R
-	LookingForGroup_RIO/LOD_DB_TW_H: RaiderIO_LOD_DB_TW_H
-	LookingForGroup_RIO/LOD_DB_TW_H_R: RaiderIO_LOD_DB_TW_H_R
-	LookingForGroup_RIO/LOD_DB_US_A: RaiderIO_LOD_DB_US_A
-	LookingForGroup_RIO/LOD_DB_US_A_R: RaiderIO_LOD_DB_US_A_R
-	LookingForGroup_RIO/LOD_DB_US_H: RaiderIO_LOD_DB_US_H
-	LookingForGroup_RIO/LOD_DB_US_H_R: RaiderIO_LOD_DB_US_H_R
+	LookingForGroup_RIO/LOD_DB_US_F: RaiderIO_LOD_DB_US_F
+	LookingForGroup_RIO/LOD_DB_US_M: RaiderIO_LOD_DB_US_M
+	LookingForGroup_RIO/LOD_DB_US_R: RaiderIO_LOD_DB_US_R
+	LookingForGroup_RIO/LOD_DB_EU_F: RaiderIO_LOD_DB_EU_F
+	LookingForGroup_RIO/LOD_DB_EU_M: RaiderIO_LOD_DB_EU_M
+	LookingForGroup_RIO/LOD_DB_EU_R: RaiderIO_LOD_DB_EU_R
+	LookingForGroup_RIO/LOD_DB_KR_F: RaiderIO_LOD_DB_KR_F
+	LookingForGroup_RIO/LOD_DB_KR_M: RaiderIO_LOD_DB_KR_M
+	LookingForGroup_RIO/LOD_DB_KR_R: RaiderIO_LOD_DB_KR_R
+	LookingForGroup_RIO/LOD_DB_TW_F: RaiderIO_LOD_DB_TW_F
+	LookingForGroup_RIO/LOD_DB_TW_M: RaiderIO_LOD_DB_TW_M
+	LookingForGroup_RIO/LOD_DB_TW_R: RaiderIO_LOD_DB_TW_R
+	LookingForGroup_RIO/LibRaiderIO_Loader: LibRaiderIO_Loader
