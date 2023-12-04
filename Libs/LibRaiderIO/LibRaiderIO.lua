@@ -98,12 +98,12 @@ function RIO.raw(data,player,server,pool)
 		for i=1,#RIO.dungeons do
 			RIO.group_ids[RIO.dungeons[i]] = i
 		end
-		local mapIDsToRaids = RIO.mapIDsToRaids
+		local mapIDsToActivityGroupID = RIO.mapIDsToActivityGroupID
 		local raids = exposed_rio_ns.raids
 		if raids then
 			for i=1,#raids do
 				local ri = raids[i]
-				RIO.mapIDsToActivityGroupID[ri.instance_map_id] = C_LFGList.GetActivityInfoTable(ri.lfd_activity_ids[1]).groupFinderActivityGroupID
+				mapIDsToActivityGroupID[ri.instance_map_id] = C_LFGList.GetActivityInfoTable(ri.lfd_activity_ids[1]).groupFinderActivityGroupID
 			end
 		end
 	end
