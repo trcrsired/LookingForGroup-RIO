@@ -64,61 +64,14 @@ LFG_OPT:push("rioffline",{
 	}
 })
 
-LFG_OPT.Register("category_callbacks",nil,{function(find_args,f_args,s_args)
-	f_args.rio_min_score =
-	{
-		name = "IO "..MINIMUM,
-		type = "input",
-		order = 1,
-		get = function(info)
-			local val = LFG_OPT.db.profile[info[#info]]
-			if val then
-				return tostring(val)
-			end
-		end,
-		set = function(info,val)
-			if val == "" then
-				LFG_OPT.db.profile[info[#info]] = nil
-			else
-				LFG_OPT.db.profile[info[#info]] = tonumber(val)
-			end
-		end,
-		pattern = "^[0-9]*$"
-	}
-	f_args.rio_max_score =
-	{
-		name = "IO "..MAXIMUM,
-		type = "input",
-		order = 2,
-		get = f_args.rio_min_score.get,
-		set = f_args.rio_min_score.set,
-		pattern = "^[0-9]*$"
-	}
-	s_args.rio_min_score=f_args.rio_min_score
-	s_args.rio_max_score=f_args.rio_max_score
-	s_args.rio_elitist_level =
-	{
-		name = "Elitist M+",
-		type = "input",
-		get = f_args.rio_min_score.get,
-		set = f_args.rio_min_score.set,
-		pattern = "^[0-9]*$"
-	}
-end,function(find_args,f_args,s_args)
-	f_args.rio_min_score = nil
-	f_args.rio_max_score = nil
-	s_args.rio_min_score = nil
-	s_args.rio_max_score= nil
-	s_args.rio_elitist_level = nil
-end,2})
-
 LFG_OPT.Register("category_callbacks",nil,{function(find_args,f_args,s_args,category)
 	f_args.rio_elite =
 	{
-		name = "Elite",
+		name = "RIO Elitism",
 		type = "toggle",
-		get = LFG_OPT.options_get_function,
-		set = LFG_OPT.options_set_function,
+		tristate = true,
+		get = LFG_OPT.options_get_tristate_function,
+		set = LFG_OPT.options_set_tristate_function,
 	}
 	if category == 3 then
 		s_args.rio_elite = f_args.rio_elite
