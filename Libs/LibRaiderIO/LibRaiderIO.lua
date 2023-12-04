@@ -1,50 +1,15 @@
 local RIO = LibStub:NewLibrary("LibRaiderIO",3)
 if not RIO then return end
-RIO.instances =
-{
-{313,2,9}, -- Aberrus
-{319,2,9}, -- Amirdrassil
-}
+RIO.instances = {}
 
-RIO.dungeons = {
-54,
-59,
-61,
-12,
-11,
-115,
-114,
-113,
-118,
-120,
-137,
-142,
-138,
-145,
-307,
-309,
-308,
-303,
-305,
-302,
-306,
-304,
-316,
-317}
+RIO.dungeons = {}
 
 RIO.raid_types = 7
 RIO.score_types = 4
 RIO.keystone_levels = 4
 RIO.keystone_levels_range = 2
 RIO.group_ids = {}
-for i=1,#RIO.instances do
-	local e = RIO.instances[i]
-	RIO.group_ids[e[1]] = e
-end
-
-for i=1,#RIO.dungeons do
-	RIO.group_ids[RIO.dungeons[i]] = i
-end
+RIO.keystoneaffixes = {{"fortified", "Fortified"}, {"tyrannical", "Tyrannical"}}
 
 RIO.factions = {}
 --RIO.constants = {3,2}
@@ -62,7 +27,7 @@ function RIO.AddProvider(provider)
 	local providers = RIO.providers
 	providers[#providers+1] = provider
 	local data = provider.data
-	local db = provider.db1 or provider.db2
+	local db = provider.db1 or provider.db2 or provider.db
 	local factthis = RIO.factions[RIO.this_faction]
 	if factthis == nil then
 		factthis =
@@ -75,10 +40,10 @@ function RIO.AddProvider(provider)
 	end
 	if db then
 		factthis.characters[data] = provider
-		provider.db = provider.db1 or provider.db2
+		provider.db = db
 	else
 		factthis.lookups[data] = provider
-		provider.lookup = provider.lookup1 or provider.lookup2
+		provider.lookup = provider.lookup1 or provider.lookup2 or provider.lookup
 	end
 end
 
@@ -92,6 +57,8 @@ function RIO.raw(data,player,server,pool)
 				AddProvider(exposed_current_region_faction_providers[i])
 			end
 			RIO.providers = exposed_current_region_faction_providers
+			LoadAddOn("RaiderIO_LOD_DB")
+			RIO.exposed_rio_ns = RaiderIO.exposed_rio_ns
 		else
 			local region = RIO.region or GetCurrentRegion()
 			local GetAddOnMetadata = GetAddOnMetadata
@@ -101,7 +68,7 @@ function RIO.raw(data,player,server,pool)
 			for i = 1, GetNumAddOns() do
 				if not IsAddOnLoaded(i) then
 					local metadata = GetAddOnMetadata(i, "X-RAIDER-IO-LOD")
-					if metadata and region == tonumber(metadata) and
+					if metadata and (metadata == "0" or region == tonumber(metadata)) and
 						(GetAddOnMetadata(i, "X-RAIDER-IO-LOD-REQUIRE-RIO") ~= "1" or raiderio_exist) then
 						local original_RaiderIO = RaiderIO
 						RIO.this_faction = GetAddOnMetadata(i, "X-RAIDER-IO-LOD-FACTION") or 0
@@ -114,23 +81,48 @@ function RIO.raw(data,player,server,pool)
 			end
 		end
 		RIO.AddProvider = nil
+		local exposed_rio_ns = RIO.exposed_rio_ns
+		local exposed_dungeons = exposed_rio_ns.dungeons
+		local riodungones = RIO.dungeons
+		for i=1,#exposed_dungeons do
+			riodungones[#riodungones+1] = C_LFGList.GetActivityInfoTable(exposed_dungeons[i].lfd_activity_ids[1]).groupFinderActivityGroupID
+		end
+		wipe(RIO.group_ids)
+		for i=1,#RIO.dungeons do
+			RIO.group_ids[RIO.dungeons[i]] = i
+		end
 	end
+
 	if server == nil then
 		server = GetNormalizedRealmName()
 	end
 	for k,factthis in pairs(RIO.factions) do
 		local characters_data = factthis.characters[data]
 		if characters_data == nil then return end
-		local server_info = characters_data.db[server]
-		if server_info == nil then return end
+--[[
+		if data == 2 then
+			local exposed_rio_ns = RIO.exposed_rio_ns
+			local exposed_raids = exposed_rio_ns.raids
+			local rioinstances = RIO.instances
+			for i=1,#exposed_raids do
+				rioinstances[#rioinstances+1] = {C_LFGList.GetActivityInfoTable(exposed_raids[i].lfd_activity_ids[1]).groupFinderActivityGroupID,2,}
+			end
+			for i=1,#RIO.instances do
+				local e = RIO.instances[i]
+				RIO.group_ids[e[1] ] = e
+			end
+		end
+]]
+		local realmData = characters_data.db[server]
+		if realmData == nil then return end
 	--lower bound : https://en.cppreference.com/w/cpp/algorithm/lower_bound
-		local first,last = 2,#server_info+1
+		local first,last = 2,#realmData+1
 		local count = last - first
 		local rshift = bit.rshift
 		while 0 < count do
 			local step = rshift(count,1)
 			local it = first + step
-			if server_info[it] < player then
+			if realmData[it] < player then
 				first = it + 1
 				count = count - 1 - step
 			else
@@ -138,30 +130,20 @@ function RIO.raw(data,player,server,pool)
 			end
 		end
 	--binary search : https://en.cppreference.com/w/cpp/algorithm/binary_search
-		if first~=last and server_info[first] <= player then
+		if first~=last and realmData[first] <= player then
 			local lookup = factthis.lookups[data]
 			if pool then
 				wipe(pool)
 			else
 				pool = {}
 			end
-			if k~=0 then
+			if k ~= 0 then
 				pool.faction_name = k
-				pool.faction_info = factthis
 			end
-			if data == 1 then	-- dungeo
-				pool.indexing = (server_info[1] + (first - 2) * lookup.recordSizeInBytes )*8
-			else
-				local constant = 2
-				local pos = server_info[1]+(first-2) * constant
-				local lkp = lookup.lookup
-				local size = #lkp[1]
-				local b = lkp[math.floor(pos/size)+1]
-				local s = pos%size
-				for i=1,constant do
-					pool[i] = b[s+i]
-				end
-			end
+			pool.faction_info = factthis
+			local baseOffset = realmData[1] + (first - 2) * lookup.recordSizeInBytes + 1
+			pool.baseOffset = baseOffset
+			pool.bitOffset = (baseOffset - 1) * 8
 			return pool
 		end
 	end
@@ -229,7 +211,7 @@ function RIO.raid(raw,index,pool)
 	end
 	local current = RIO.instances[1]
 	local current_bosses = current[3]
-	if index == 1 then	
+	if index == 1 then
 		return RIO.raid_process(raw[1],0,current,pool)
 	elseif index == 2 then
 		return RIO.raid_process(raw[1],2*current_bosses+2,current,pool)
@@ -301,49 +283,52 @@ end
 4   7  33       PREVIOUS_ROLES              previous season roles
 5  12  40       MAIN_CURRENT_SCORE          main's current season score
 6   7  52       MAIN_CURRENT_ROLES          main's current season roles
-7  11  59       MAIN_PREVIOUS_SCORE         main's previous season score
-8   7  70       MAIN_PREVIOUS_ROLES         main's previous season roles
-9  32  77       DUNGEON_RUN_COUNTS          number of runs this season for 5+, 10+, 15+, and 20+
-10 7*dnums 109       DUNGEON_LEVELS              dungeon levels and stars for each dungeon completed
-11 4 109+7*dnums       DUNGEON_BEST_INDEX          best dungeon index
+7  12  59       MAIN_PREVIOUS_SCORE         main's previous season score
+8   7  71       MAIN_PREVIOUS_ROLES         main's previous season roles
+9  32  78       DUNGEON_RUN_COUNTS          number of runs this season for 5+, 10+, 15+, and 20+
+10 2*8*dnums 110       DUNGEON_LEVELS              dungeon levels and stars for each dungeon completed
+11 4 110+2*8*dnums       DUNGEON_BEST_INDEX          best dungeon index
 ]]
 
 function RIO.score(raw,index)
 	local str=raw.faction_info.lookups[1].lookup[1]
 	local read_bits_from_str = RIO.ReadBitsFromString
-	local indexing = raw.indexing
+	local bitOffset = raw.bitOffset
 	if index==1 then
-		return read_bits_from_str(str,indexing,12)
+		return read_bits_from_str(str,bitOffset,12)
 	elseif index == 2 then
-		return read_bits_from_str(str,indexing+19,12),read_bits_from_str(str,indexing+31,2)
+		return read_bits_from_str(str,bitOffset+19,12),read_bits_from_str(str,bitOffset+31,2)
 	elseif index == 3 then
-		return read_bits_from_str(str,indexing+40,12)
+		return read_bits_from_str(str,bitOffset+40,12)
 	else
-		return read_bits_from_str(str,indexing+59,9)*10,read_bits_from_str(str,indexing+68,2)
+		return read_bits_from_str(str,bitOffset+59,10)*10,read_bits_from_str(str,bitOffset+69,2)
 	end
 end
 
-function RIO.dungeon(raw,index)
-	local base = 103+index*7 + raw.indexing		--110: DUNGEON_LEVELS
+function RIO.dungeon(raw,index,affixindex)
+	local base = 110+(index-1)*8 + raw.bitOffset + (affixindex-1) * 8 * #RIO.dungeons	--110: DUNGEON_LEVELS
 	local str=raw.faction_info.lookups[1].lookup[1]
 	local read_bits_from_str = RIO.ReadBitsFromString
-	return read_bits_from_str(str,base,5),read_bits_from_str(str,base+5,2)
+	return read_bits_from_str(str,base,6),read_bits_from_str(str,base+6,2)
 end
 
 function RIO.keystone(raw,leveldiv5)
-	local value = RIO.ReadBitsFromString(raw.faction_info.lookups[1].lookup[1],raw.indexing+70+leveldiv5*8,8)
+	local value = RIO.ReadBitsFromString(raw.faction_info.lookups[1].lookup[1],raw.bitOffset+70+leveldiv5*8,8)
 	if value < 200 then
 		return value
 	end
 	return 200 + (value - 200) * 2
 end
 
-function RIO.max_dungeon(raw)
-	return RIO.ReadBitsFromString(raw.faction_info.lookups[1].lookup[1],raw.indexing+110+7*#RIO.dungeons,4)+1
+function RIO.max_dungeon(raw,affixindex)
+	local lookup = raw.faction_info.lookups[1].lookup[1]
+	local affixes = #RIO.keystoneaffixes
+	local offset = raw.bitOffset+110+affixes*8*#RIO.dungeons + (affixindex-1) * 8
+	return RIO.ReadBitsFromString(lookup,offset,4)+1
 end
 
-function RIO.role_process(faction_info,indexing,pool)
-	local roles = RIO.ReadBitsFromString(faction_info.lookups[1].lookup[1],indexing,7)
+function RIO.role_process(faction_info,bitOffset,pool)
+	local roles = RIO.ReadBitsFromString(faction_info.lookups[1].lookup[1],bitOffset,7)
 	local lw, hw = RIO.Split64BitNumber(RIO.decode[5][floor(roles/6)+1])
 
 	local rl = RIO.ReadBits(lw,hw,(roles%6)*9,9)
@@ -361,14 +346,14 @@ end
 
 function RIO.role(raw,index,pool)
 	local faction_info = raw.faction_info
-	local indexing = raw.indexing
+	local bitOffset = raw.bitOffset
 	if index == 1 then
-		return RIO.role_process(faction_info,indexing+12,pool)
+		return RIO.role_process(faction_info,bitOffset+12,pool)
 	elseif index == 2 then
-		return RIO.role_process(faction_info,indexing+33,pool)
+		return RIO.role_process(faction_info,bitOffset+33,pool)
 	elseif index == 3 then
-		return RIO.role_process(faction_info,indexing+52,pool)
+		return RIO.role_process(faction_info,bitOffset+52,pool)
 	else
-		return RIO.role_process(faction_info,indexing+70,pool)
+		return RIO.role_process(faction_info,bitOffset+70,pool)
 	end
 end

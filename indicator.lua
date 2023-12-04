@@ -41,6 +41,60 @@ function LFG_RIO.role_concat(concat,raw,i,pool1)
 	end
 	return concat
 end
+
+function LFG_RIO.dump_rio_bitdata(concat,raw,riodatatype)
+	local luptb=raw.faction_info.lookups[riodatatype]
+	concat[#concat+1] = format("\n%s\n%.0f {",luptb.date,raw.bitOffset)
+	local baseOffset=raw.baseOffset
+	local lu = luptb.lookup[1]
+	local strbyte = strbyte
+	for i=0,luptb.recordSizeInBytes-1 do
+		if i ~= 0 then
+			concat[#concat+1] = ","
+		end
+		concat[#concat+1] = strbyte(lu,baseOffset+i)
+	end
+	concat[#concat+1] = "}"
+end
+
+function LFG_RIO.dump_rio_affix_dungeon_data(concat,raw,affixindex)
+	local RIO_dungeons = RIO.dungeons
+	local keystoneaffixes = RIO.keystoneaffixes
+	concat[#concat+1] = keystoneaffixes[affixindex][2]
+	concat[#concat+1] = "\n"
+	concat[#concat+1] = 0
+	local done_pos = #concat
+	concat[#concat+1] = "/"
+	concat[#concat+1] = #RIO_dungeons
+	concat[#concat+1] = "\n"
+	local done = 0
+	local RIO_dungeons = RIO.dungeons
+	local RIO_dungeon = RIO.dungeon
+	local GetActivityGroupInfo = C_LFGList.GetActivityGroupInfo
+	local max_dungeon = RIO.max_dungeon(raw,affixindex)
+	for i=1,#RIO_dungeons do
+		local level,upgrade = RIO_dungeon(raw,i,affixindex)
+		if level ~= 0 then
+			done = done + 1
+			if i == max_dungeon then
+				concat[#concat+1] = "|c0000FF00★|r "
+			end
+			concat[#concat+1] = "|cff8080cd"
+			concat[#concat+1] = GetActivityGroupInfo(RIO_dungeons[i])
+			concat[#concat+1] = "|r "
+			concat[#concat+1] = level
+			if upgrade == 0 then
+				concat[#concat+1] = '|c00FF0000-|r\n'
+			else
+				concat[#concat+1] = '+|c0000ff00'
+				concat[#concat+1] = upgrade
+				concat[#concat+1] = "|r\n"
+			end
+		end
+	end
+	concat[done_pos] = done
+end
+
 local function co_label(self)
 	local current = coroutine.running()
 	function self.OnRelease()
@@ -102,7 +156,6 @@ local function co_label(self)
 						if band(i-1,2) ~= 0 then
 							concat[#concat+1] = "M "
 						end
-					
 						concat[#concat+1] = score
 						concat[#concat+1] = " "
 						LFG_RIO.role_concat(concat,raw,i,pool1)
@@ -141,50 +194,14 @@ local function co_label(self)
 					end
 				end
 				concat[#concat+1] = "\n"
-				local RIO_dungeons = RIO.dungeons
-				local max_dungeon = RIO.max_dungeon(raw)
-				concat[#concat+1] = 0
-				local done_pos = #concat
-				concat[#concat+1] = "/"
-				concat[#concat+1] = #RIO_dungeons
-				concat[#concat+1] = "\n"
-				local RIO_dungeon = RIO.dungeon
-				local done = 0
-				for i=1,#RIO_dungeons do
-					local level,upgrade = RIO_dungeon(raw,i)
-					if level ~= 0 then
-						done = done + 1
-						if i == max_dungeon then
-							concat[#concat+1] = "|c0000FF00★|r "
-						end
-						concat[#concat+1] = "|cff8080cd"
-						concat[#concat+1] = GetActivityGroupInfo(RIO_dungeons[i])
-						concat[#concat+1] = "|r "
-						concat[#concat+1] = level
-						if upgrade == 0 then
-							concat[#concat+1] = '|c00FF0000-|r\n'
-						else
-							concat[#concat+1] = '+|c0000ff00'
-							concat[#concat+1] = upgrade
-							concat[#concat+1] = "|r\n"
-						end
-					end
-				end
-				local luptb=raw.faction_info.lookups[1]
-				concat[#concat+1] = format("\n%s\n|cff0000ff%.0f {",luptb.date,raw.indexing)
-				local rd8=raw.indexing/8
-				local lu = luptb.lookup[1]
-				for i=0,luptb.recordSizeInBytes-1 do
-					if i ~= 0 then
-						concat[#concat+1] = ","
-					end
-					concat[#concat+1] = strbyte(lu,rd8+i)
-				end
-				concat[#concat+1] = "}|r\n"
-				concat[done_pos] = done
+				for i = 1,#RIO.keystoneaffixes do
+					LFG_RIO.dump_rio_affix_dungeon_data(concat,raw,i)
+					concat[#concat+1] = "\n"
+				end	
+				LFG_RIO.dump_rio_bitdata(concat,raw,1)
 			end
 			local raw = RIO.raw(2,name,server,pool)
-			if raw then
+			if false then
 				local reserved_group_id
 				for i=1,RIO.raid_types do
 					local difficulty,count,bosses,has_pool,instance,pool = RIO.raid(raw,i,pool1)
@@ -220,12 +237,8 @@ local function co_label(self)
 						concat[#concat+1] = "\n"
 					end
 				end
-				local luptb=raw.faction_info.lookups[2]
-				concat[#concat+1] = format("\n%s\n|cff0000ff{%.0f",luptb.date,raw[1])
-				for i=2,#raw do
-					concat[#concat+1] = format(",%.0f",raw[i])
-				end
-				concat[#concat+1] = "}|r\n"
+				LFG_RIO.dump_rio_bitdata(concat,raw,2)
+				concat[#concat+1] = "\n"
 			end
 			self:SetText(table.concat(concat))
 		until true

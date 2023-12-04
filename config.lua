@@ -2,7 +2,7 @@ local LFG_OPT = LibStub("AceAddon-3.0"):GetAddon("LookingForGroup_Options")
 local LFG_RIO = LFG_OPT:NewModule("RaiderIO","AceEvent-3.0")
 
 LFG_OPT:push("rioffline",{
-	name = "IO "..PLAYER_OFFLINE,
+	name = "Raider.IO "..PLAYER_OFFLINE,
 	type = "group",
 	args =
 	{
@@ -16,7 +16,7 @@ LFG_OPT:push("rioffline",{
 				if v=="" then
 					LFG_OPT.raider_io_name = nil
 				else
-					LFG_OPT.raider_io_name = v				
+					LFG_OPT.raider_io_name = v
 				end
 			end,
 			type = "input",
@@ -44,7 +44,7 @@ LFG_OPT:push("rioffline",{
 			order = 2,
 			confirm = true
 		},
-		desc = 
+		desc =
 		{
 			name = nop,
 			type = "multiselect",
