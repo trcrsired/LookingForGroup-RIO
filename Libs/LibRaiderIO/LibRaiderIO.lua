@@ -4,12 +4,19 @@ RIO.instances = {}
 
 RIO.dungeons = {}
 
+RIO.data_types = 4
 RIO.raid_types = 7
 RIO.score_types = 4
+RIO.raid_progress_types = {
+{"CURRENT_FULL_PROGRESS","Current Full Progress"},
+{"PREVIOUS_FULL_PROGRESS","Previous Full Progress"},
+{"PREVIOUS_PROGRESS","Previous Progress Summary"},
+{"MAIN_PROGRESS","Main Progress Summary"}}
 RIO.keystone_levels = 4
 RIO.keystone_levels_range = 2
 RIO.group_ids = {}
 RIO.keystoneaffixes = {{"fortified", "Fortified"}, {"tyrannical", "Tyrannical"}}
+RIO.mapIDsToActivityGroupID = {}
 
 RIO.factions = {}
 --RIO.constants = {3,2}
@@ -91,6 +98,14 @@ function RIO.raw(data,player,server,pool)
 		for i=1,#RIO.dungeons do
 			RIO.group_ids[RIO.dungeons[i]] = i
 		end
+		local mapIDsToRaids = RIO.mapIDsToRaids
+		local raids = exposed_rio_ns.raids
+		if raids then
+			for i=1,#raids do
+				local ri = raids[i]
+				RIO.mapIDsToActivityGroupID[ri.instance_map_id] = C_LFGList.GetActivityInfoTable(ri.lfd_activity_ids[1]).groupFinderActivityGroupID
+			end
+		end
 	end
 
 	if server == nil then
@@ -99,20 +114,6 @@ function RIO.raw(data,player,server,pool)
 	for k,factthis in pairs(RIO.factions) do
 		local characters_data = factthis.characters[data]
 		if characters_data == nil then return end
---[[
-		if data == 2 then
-			local exposed_rio_ns = RIO.exposed_rio_ns
-			local exposed_raids = exposed_rio_ns.raids
-			local rioinstances = RIO.instances
-			for i=1,#exposed_raids do
-				rioinstances[#rioinstances+1] = {C_LFGList.GetActivityInfoTable(exposed_raids[i].lfd_activity_ids[1]).groupFinderActivityGroupID,2,}
-			end
-			for i=1,#RIO.instances do
-				local e = RIO.instances[i]
-				RIO.group_ids[e[1] ] = e
-			end
-		end
-]]
 		local realmData = characters_data.db[server]
 		if realmData == nil then return end
 	--lower bound : https://en.cppreference.com/w/cpp/algorithm/lower_bound
@@ -167,78 +168,6 @@ function RIO.ReadBits(lo, hi, offset, bits)
 			return bit.band(bit.rshift(hi, offset - 32), mask)
 		end
 	end
-end
-
-function RIO.Split64BitNumber(d)
-	local lo = bit.band(d, 0xfffffffff)
-	return lo, (d - lo) / 0x100000000
-end
-
-function RIO.raid_process(indexing,pos,instance,pool)
-	local lo, hi = RIO.Split64BitNumber(indexing)
-	local read_bits = RIO.ReadBits
-	local difficulty = read_bits(lo,hi,pos,2)
-	local bosses = instance[3]
-	if difficulty == 0 then
-		return
-	end
-	local count = 0
-	if pool == nil then
-		for i=1, bosses do
-			if 0 ~= read_bits(lo,hi,pos+i*2,2) then
-				count = count + 1
-			end
-		end
-	elseif type(pool) == "table" then
-		wipe(pool)
-		local dc = RIO.decode[1]
-		for i=1, bosses do
-			local c = dc[read_bits(lo,hi,pos+i*2,2)+1]
-			pool[i] = c
-			if 0 ~= c then
-				count = count + 1
-			end
-		end
-	else
-		return difficulty,read_bits(lo,hi,pos+2,4),bosses,false,instance,pool
-	end
-	return difficulty,count,bosses,true,instance,pool
-end
-
-function RIO.raid(raw,index,pool)
-	if type(pool)~="table" then
-		pool = nil
-	end
-	local current = RIO.instances[1]
-	local current_bosses = current[3]
-	if index == 1 then
-		return RIO.raid_process(raw[1],0,current,pool)
-	elseif index == 2 then
-		return RIO.raid_process(raw[1],2*current_bosses+2,current,pool)
-	elseif index == 3 then
-		return RIO.raid_process(raw[2],0,current,pool)
-	else
-		if index < 6 then
-			current = RIO.instances[2]
-		end
-		return RIO.raid_process(raw[2],2*current_bosses+6*index-22,current,5 < index)
-	end
-end
-
-function RIO.raid_group(raw,groupID,shortName,pool)
-	if raw then
-		local decode = RIO.decode[4]
-		local RIO_raid = RIO.raid
-		for i=1,5 do
-			local difficulty,count,bosses,has_pool,instance,temp = RIO_raid(raw,i,pool)
-			if difficulty and instance[1] == groupID and (shortName == nil or decode[difficulty] == shortName) then
-				return difficulty,count,bosses,has_pool,instance,temp
-			end
-		end
-	end
-	local e = RIO.group_ids[groupID]
-	if type(e)=="table" then return false,0,e[3] end
-	return false,0,-1
 end
 
 function RIO.ReadBitsFromString(data, offset, length)
@@ -327,9 +256,26 @@ function RIO.max_dungeon(raw,affixindex)
 	return RIO.ReadBitsFromString(lookup,offset,4)+1
 end
 
+function RIO.Split64BitNumber(d)
+	local lo = bit.band(d, 0xfffffffff)
+	return lo, (d - lo) / 0x100000000
+end
+
 function RIO.role_process(faction_info,bitOffset,pool)
 	local roles = RIO.ReadBitsFromString(faction_info.lookups[1].lookup[1],bitOffset,7)
-	local lw, hw = RIO.Split64BitNumber(RIO.decode[5][floor(roles/6)+1])
+
+	local roleval = RIO.decode[5][floor(roles/6)+1]
+
+	if roleval == nil then
+		if pool then
+			wipe(pool)
+		else
+			pool = {}
+		end
+		return pool
+	end
+
+	local lw, hw = RIO.Split64BitNumber(roleval)
 
 	local rl = RIO.ReadBits(lw,hw,(roles%6)*9,9)
 	if pool then
@@ -356,4 +302,76 @@ function RIO.role(raw,index,pool)
 	else
 		return RIO.role_process(faction_info,bitOffset+70,pool)
 	end
+end
+
+function RIO.unpack_raid_progress(raw,str,raid,offset,isfull)
+	if raw == nil then
+		raw = {}
+	else
+		wipe(raw)
+	end
+	local read_bits_from_str = RIO.ReadBitsFromString
+	raw.difficulty = read_bits_from_str(str, offset, 2) 	-- difficultyID
+	raw.raid = raid
+	local bossCount = raid.bossCount
+	raw.bossCount = bossCount
+	raw.isFull = isfull
+	raw.lfgActivityGroupID = RIO.mapIDsToActivityGroupID[raid.mapId]
+	offset = offset + 2
+	if isfull then
+		local decode2tb = RIO.decode[1]
+		local progressCount = 0
+		for i = 1, bossCount do
+			local value = read_bits_from_str(str, offset, 2)
+			local killsPerBoss = decode2tb[1+value] or 0
+			raw[i] = killsPerBoss
+			offset = offset + 2
+			if 0 < killsPerBoss then
+				progressCount = progressCount + 1
+			end
+		end
+		raw.progressCount = progressCount
+	else
+		raw.progressCount = read_bits_from_str(str, offset, 4)
+		offset = offset + 4
+	end
+	return raw, offset
+end
+
+function RIO.raids_process(raidsres, raw)
+	if raidsres == nil then
+		raidsres = {}
+	else
+		wipe(raidsres)
+	end
+	local lookups = raw.faction_info.lookups[2]
+	local str=raw.faction_info.lookups[2].lookup[1]
+	local bitoffset = raw.bitOffset
+
+	for index = 1, #RIO.raid_progress_types do
+		local raids
+		if index == 2 or index == 3 then
+			raids = lookups.previousRaids
+		else
+			raids = lookups.currentRaids
+		end
+		local isfullprogress
+		if index == 1 or index == 2 then
+			isfullprogress = true
+		end
+		local loopcount = 2
+		if index == 2 then
+			loopcount = 1
+		end
+		local unpack_raid_progress = RIO.unpack_raid_progress
+		local res = {}
+		for i = 1,#raids do
+			local ri = raids[i]
+			for j = 1,loopcount do
+				res[#res+1], bitoffset = unpack_raid_progress(nil,str,ri,bitoffset,isfullprogress)
+			end
+		end
+		raidsres[#raidsres+1] = res
+	end
+	return raidsres
 end
