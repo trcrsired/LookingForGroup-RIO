@@ -16,7 +16,7 @@ RIO.keystone_levels = 4
 RIO.keystone_levels_range = 2
 RIO.group_ids = {}
 RIO.keystoneaffixes = {{"fortified", "Fortified"}, {"tyrannical", "Tyrannical"}}
-RIO.mapIDsToActivityGroupID = {}
+RIO.mapIDsToActivitiesInfo = {}
 
 RIO.factions = {}
 RIO.datacache = {}
@@ -104,12 +104,12 @@ function RIO.raw(data,player,server)
 		for i=1,#RIO.dungeons do
 			RIO.group_ids[RIO.dungeons[i]] = i
 		end
-		local mapIDsToActivityGroupID = RIO.mapIDsToActivityGroupID
+		local mapIDsToActivitiesInfo = RIO.mapIDsToActivitiesInfo
 		local raids = exposed_rio_ns.raids
 		if raids then
 			for i=1,#raids do
 				local ri = raids[i]
-				mapIDsToActivityGroupID[ri.instance_map_id] = C_LFGList.GetActivityInfoTable(ri.lfd_activity_ids[1]).groupFinderActivityGroupID
+				mapIDsToActivitiesInfo[ri.instance_map_id] = {ri.lfd_activity_ids,C_LFGList.GetActivityInfoTable(ri.lfd_activity_ids[1]).groupFinderActivityGroupID}
 			end
 		end
 	end
@@ -325,7 +325,11 @@ function RIO.unpack_raid_progress(raw,str,raid,offset,isfull)
 	local bossCount = raid.bossCount
 	raw.bossCount = bossCount
 	raw.isFull = isfull
-	raw.lfgActivityGroupID = RIO.mapIDsToActivityGroupID[raid.mapId]
+	local activitiesinfo = RIO.mapIDsToActivitiesInfo[raid.mapId]
+	local lfgActivityGroupID = activitiesinfo[2]
+	raw.lfgActivityGroupID = lfgActivityGroupID
+	local activities = activitiesinfo[1]
+	raw.lfgActivitiesIDs = activities
 	offset = offset + 2
 	if isfull then
 		local decode2tb = RIO.decode[1]
@@ -383,4 +387,15 @@ function RIO.raids_process(raidsres, raw)
 		raidsres[#raidsres+1] = res
 	end
 	return raidsres
+end
+
+function RIO.lfgActivityDifficulty(activityID)
+	local activityInfo = C_LFGList.GetActivityInfoTable(activityID)
+	local shortName = activityInfo.shortName
+	local difficultiesNames = RIO.decode[4]
+	for i=1,#shortName do
+		if shortName == difficultiesNames[i] then
+			return i
+		end
+	end
 end
