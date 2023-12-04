@@ -164,8 +164,7 @@ LFG_OPT.Register("applicant_tooltips",nil,function(_,entry,profile)
 	if categoryID ~= 2 and categoryID ~= 3 then
 		return
 	end
-	local cache = {}
 	return function(val,i,name)
-		encounters(nil,cache,groupID,categoryID,shortName,name)
+		encounters(nil,nil,groupID,categoryID,shortName,name)
 	end
 end)
