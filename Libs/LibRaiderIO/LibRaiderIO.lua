@@ -19,6 +19,12 @@ RIO.keystoneaffixes = {{"fortified", "Fortified"}, {"tyrannical", "Tyrannical"}}
 RIO.mapIDsToActivityGroupID = {}
 
 RIO.factions = {}
+RIO.datacache = {}
+for i=1,RIO.data_types do
+	local dch = RIO.datacache
+	dch[#dch+1] = {}
+end
+
 --RIO.constants = {3,2}
 
 RIO.decode =
@@ -54,7 +60,7 @@ function RIO.AddProvider(provider)
 	end
 end
 
-function RIO.raw(data,player,server,pool)
+function RIO.raw(data,player,server)
 	if RIO.providers == nil then
 		RIO.providers = {}
 		if RaiderIO and RaiderIO.libraiderio_loader_exposed_current_region_faction_providers then
@@ -111,6 +117,12 @@ function RIO.raw(data,player,server,pool)
 	if server == nil then
 		server = GetNormalizedRealmName()
 	end
+	local playerfullname = player.."-"..server
+	local dcdata = RIO.datacache[data]
+	local cacheddata = dcdata[playerfullname]
+	if cacheddata then
+		return cacheddata
+	end
 	for k,factthis in pairs(RIO.factions) do
 		local characters_data = factthis.characters[data]
 		if characters_data == nil then return end
@@ -133,11 +145,7 @@ function RIO.raw(data,player,server,pool)
 	--binary search : https://en.cppreference.com/w/cpp/algorithm/binary_search
 		if first~=last and realmData[first] <= player then
 			local lookup = factthis.lookups[data]
-			if pool then
-				wipe(pool)
-			else
-				pool = {}
-			end
+			local pool = {}
 			if k ~= 0 then
 				pool.faction_name = k
 			end
@@ -145,6 +153,7 @@ function RIO.raw(data,player,server,pool)
 			local baseOffset = realmData[1] + (first - 2) * lookup.recordSizeInBytes + 1
 			pool.baseOffset = baseOffset
 			pool.bitOffset = (baseOffset - 1) * 8
+			dcdata[playerfullname] = pool
 			return pool
 		end
 	end
