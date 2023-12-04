@@ -44,9 +44,18 @@ LFG_OPT:push("rioffline",{
 			order = 2,
 			confirm = true
 		},
+		riodetails =
+		{
+			order = 5,
+			name = LFG_LIST_DETAILS,
+			type = "toggle",
+			get = LFG_OPT.options_get_function,
+			set = LFG_OPT.options_set_function
+		},
 		desc =
 		{
 			name = nop,
+			order = 6,
 			type = "multiselect",
 			values = nop,
 			control = "LFG_RIO_INDICATOR",

@@ -44,26 +44,32 @@ end
 
 function LFG_RIO.dump_rio_bitdata(concat,raw,riodatatype)
 	local luptb=raw.faction_info.lookups[riodatatype]
-	concat[#concat+1] = format("\n%s\n%.0f {",luptb.date,raw.bitOffset)
+	concat[#concat+1] = format("\n%d  |cff8080cd%s|r\n%d |cff8080cd{",riodatatype,luptb.date,raw.bitOffset)
 	local baseOffset=raw.baseOffset
 	local lu = luptb.lookup[1]
 	local strbyte = strbyte
+	local j=0
 	for i=0,luptb.recordSizeInBytes-1 do
 		if i ~= 0 then
 			concat[#concat+1] = ","
 		end
+		if j == 16 then
+			j = 0
+			concat[#concat+1] = "\n"
+		end
 		concat[#concat+1] = strbyte(lu,baseOffset+i)
+		j = j + 1
 	end
-	concat[#concat+1] = "}"
+	concat[#concat+1] = "}|r"
 end
 
 function LFG_RIO.dump_rio_affix_dungeon_data(concat,raw,affixindex)
 	local RIO_dungeons = RIO.dungeons
 	local keystoneaffixes = RIO.keystoneaffixes
+	local done_pos = #concat
 	concat[#concat+1] = keystoneaffixes[affixindex][2]
 	concat[#concat+1] = "\n"
 	concat[#concat+1] = 0
-	local done_pos = #concat
 	concat[#concat+1] = "/"
 	concat[#concat+1] = #RIO_dungeons
 	concat[#concat+1] = "\n"
@@ -76,6 +82,7 @@ function LFG_RIO.dump_rio_affix_dungeon_data(concat,raw,affixindex)
 		local level,upgrade = RIO_dungeon(raw,i,affixindex)
 		if level ~= 0 then
 			done = done + 1
+			concat[#concat+1] = "\n"
 			if i == max_dungeon then
 				concat[#concat+1] = "|c0000FF00★|r "
 			end
@@ -84,15 +91,148 @@ function LFG_RIO.dump_rio_affix_dungeon_data(concat,raw,affixindex)
 			concat[#concat+1] = "|r "
 			concat[#concat+1] = level
 			if upgrade == 0 then
-				concat[#concat+1] = '|c00FF0000-|r\n'
+				concat[#concat+1] = '|c00FF0000-|r'
 			else
 				concat[#concat+1] = '+|c0000ff00'
 				concat[#concat+1] = upgrade
-				concat[#concat+1] = "|r\n"
+				concat[#concat+1] = "|r"
 			end
 		end
 	end
-	concat[done_pos] = done
+	if done ~= 0 then
+		concat[done_pos+3] = done
+	else
+		for i=done_pos+1,done_pos+6 do
+			concat[i] = ""
+		end
+	end
+end
+
+function LFG_RIO.dump_rio_player_data(concat, datatype, name, server, pool, pool1)
+	if pool == nil then
+		pool = {}
+	else
+		wipe(pool)
+	end
+	if pool1 == nil then
+		pool1 = {}
+	else
+		wipe(pool1)
+	end
+	local raw = RIO.raw(datatype,name,server,pool)
+	local band = bit.band
+	if raw == nil then
+		return
+	end
+	local riodetails = LFG_OPT.db.profile.riodetails
+	if datatype == 1 then
+		for i=1,RIO.score_types do
+			local score,season = RIO.score(raw,i)
+			if score ~= 0 then
+				if season then
+					concat[#concat+1] = "|cffffa500S["
+					concat[#concat+1] = season + 1
+					concat[#concat+1] = "]|r "
+				end
+				if band(i-1,2) ~= 0 then
+					concat[#concat+1] = "M "
+				end
+				concat[#concat+1] = score
+				concat[#concat+1] = " "
+				LFG_RIO.role_concat(concat,raw,i,pool1)
+				concat[#concat+1] = "\n"
+			end
+		end
+		concat[#concat+1] = "\n"
+		local RIO_keystone = RIO.keystone
+		local RIO_keystone_range = RIO.keystone_levels_range
+		for i=RIO.keystone_levels,1,-1 do
+			local t,range = RIO_keystone(raw,i)
+			if t~= 0 then
+				concat[#concat+1] = "|cffff00ff["
+				concat[#concat+1] = i*5
+				concat[#concat+1] = ","
+				if i <= RIO_keystone_range then
+					concat[#concat+1] = i*5+5
+				else
+					concat[#concat+1] = "+∞"
+				end
+				concat[#concat+1] = ")|r "
+				if range then
+					concat[#concat+1] = "["
+					concat[#concat+1] = t
+					if range == true then
+						concat[#concat+1] = ",+∞)"
+					else
+						concat[#concat+1] = ","
+						concat[#concat+1] = range
+						concat[#concat+1] = ")"
+					end
+				else
+					concat[#concat+1] = t
+				end
+				concat[#concat+1] = "\n"
+			end
+		end
+		if riodetails then
+			for i = 1,#RIO.keystoneaffixes do
+				concat[#concat+1] = "\n"
+				LFG_RIO.dump_rio_affix_dungeon_data(concat,raw,i)
+			end
+		end
+	elseif datatype == 2 then
+		local raidsprogress = RIO.raids_process(pool1,raw)
+		local raid_progress_types = RIO.raid_progress_types
+		local GetActivityGroupInfo =C_LFGList.GetActivityGroupInfo
+		for i = 1,#raidsprogress do
+			if not riodetails and i ~= 1 then
+				break
+			end
+			local rpgi = raidsprogress[i]
+			local skippos = #concat
+			concat[skippos+1] = ""
+			concat[skippos+2] = ""
+			local hasthisprogress
+			for j = 1, #rpgi do
+				local rinfo = rpgi[j]
+				local difficulty = rinfo.difficulty
+				if difficulty ~= 0 then
+					concat[#concat+1] = "\n|cff8080cd"
+					concat[#concat+1] = GetActivityGroupInfo(rinfo.lfgActivityGroupID)
+					concat[#concat+1] = "|r "
+					concat[#concat+1] = rinfo.progressCount
+					concat[#concat+1] = "/"
+					concat[#concat+1] = rinfo.bossCount
+					local simpledifficultystring
+					if difficulty == 1 then
+						simpledifficultystring = "N"
+					elseif difficulty == 2 then
+						simpledifficultystring = "H"
+					elseif difficulty == 3 then
+						simpledifficultystring = "M"
+					else
+						simpledifficultystring = "?"
+					end
+					concat[#concat+1] = simpledifficultystring
+					if rinfo.isFull then
+						concat[#concat+1] = " |cffff00ff"
+						for k=1,#rinfo do
+							concat[#concat+1] = rinfo[k]
+						end
+						concat[#concat+1] = "|r"
+					end
+					hasthisprogress = true
+				end
+			end
+			if hasthisprogress and riodetails then
+				concat[skippos+1] = "\n"
+				concat[skippos+2] = raid_progress_types[i][2]
+			end
+		end
+	end
+	if riodetails then
+		LFG_RIO.dump_rio_bitdata(concat,raw,datatype)
+	end
 end
 
 local function co_label(self)
@@ -142,105 +282,14 @@ local function co_label(self)
 				concat[#concat+1] = "|r"
 			end
 			concat[#concat+1] = "\n\n"
-			local raw = RIO.raw(1,name,server,pool)
-			local band = bit.band
-			if raw then
-				for i=1,RIO.score_types do
-					local score,season = RIO.score(raw,i)
-					if score ~= 0 then
-						if season then
-							concat[#concat+1] = "|cffffa500S["
-							concat[#concat+1] = season + 1
-							concat[#concat+1] = "]|r "
-						end
-						if band(i-1,2) ~= 0 then
-							concat[#concat+1] = "M "
-						end
-						concat[#concat+1] = score
-						concat[#concat+1] = " "
-						LFG_RIO.role_concat(concat,raw,i,pool1)
-						concat[#concat+1] = "\n"
-					end
-				end
-				concat[#concat+1] = "\n"
-				local RIO_keystone = RIO.keystone
-				local RIO_keystone_range = RIO.keystone_levels_range
-				for i=RIO.keystone_levels,1,-1 do
-					local t,range = RIO_keystone(raw,i)
-					if t~= 0 then
-						concat[#concat+1] = "|cffff00ff["
-						concat[#concat+1] = i*5
-						concat[#concat+1] = ","
-						if i <= RIO_keystone_range then
-							concat[#concat+1] = i*5+5
-						else
-							concat[#concat+1] = "+∞"
-						end
-						concat[#concat+1] = ")|r "
-						if range then
-							concat[#concat+1] = "["
-							concat[#concat+1] = t
-							if range == true then
-								concat[#concat+1] = ",+∞)"
-							else
-								concat[#concat+1] = ","
-								concat[#concat+1] = range
-								concat[#concat+1] = ")"
-							end
-						else
-							concat[#concat+1] = t
-						end
-						concat[#concat+1] = "\n"
-					end
-				end
-				concat[#concat+1] = "\n"
-				for i = 1,#RIO.keystoneaffixes do
-					LFG_RIO.dump_rio_affix_dungeon_data(concat,raw,i)
+			for i = 1, RIO.data_types do
+				if i ~= 1 then
 					concat[#concat+1] = "\n"
-				end	
-				LFG_RIO.dump_rio_bitdata(concat,raw,1)
-			end
-			local raw = RIO.raw(2,name,server,pool)
-			if false then
-				local reserved_group_id
-				for i=1,RIO.raid_types do
-					local difficulty,count,bosses,has_pool,instance,pool = RIO.raid(raw,i,pool1)
-					if difficulty then
-						local groupid = instance[1]
-						if groupid~=reserved_group_id then
-							concat[#concat+1] = "\n|c0000ff00"
-							concat[#concat+1] = GetActivityGroupInfo(groupid)
-							concat[#concat+1] = "|r\n"
-							reserved_group_id = groupid
-						end
-						if not has_pool and pool then
-							concat[#concat+1] = 'M '
-						end
-						concat[#concat+1] = '|cff8080cd'
-						concat[#concat+1] = RIO.decode[4][difficulty]
-						concat[#concat+1] = '|r '
-						if count == bosses then
-							concat[#concat+1] = count
-						else
-							concat[#concat+1] = "|c00ff0000"
-							concat[#concat+1] = count
-							concat[#concat+1] = "|r"
-						end
-						concat[#concat+1] = '/'
-						concat[#concat+1] = bosses
-						if has_pool then
-							concat[#concat+1] = ' '
-							for i=1,#pool do
-								concat[#concat+1] = pool[i]
-							end
-						end
-						concat[#concat+1] = "\n"
-					end
 				end
-				LFG_RIO.dump_rio_bitdata(concat,raw,2)
-				concat[#concat+1] = "\n"
+				LFG_RIO.dump_rio_player_data(concat, i, name, server, pool, pool1)
 			end
 			self:SetText(table.concat(concat))
+			self:SetFontObject(GameFontHighlightLarge)
 		until true
 		yd = coroutine.yield()
 	end
