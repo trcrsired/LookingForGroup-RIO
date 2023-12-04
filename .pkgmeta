@@ -13,4 +13,4 @@ move-folders:
 	LookingForGroup_RIO/LOD_DB_TW_F: RaiderIO_LOD_DB_TW_F
 	LookingForGroup_RIO/LOD_DB_TW_M: RaiderIO_LOD_DB_TW_M
 	LookingForGroup_RIO/LOD_DB_TW_R: RaiderIO_LOD_DB_TW_R
-	LookingForGroup_RIO/LibRaiderIO_Loader: LibRaiderIO_Loader
+	LookingForGroup_RIO/LOD_DB: RaiderIO_LOD_DB
