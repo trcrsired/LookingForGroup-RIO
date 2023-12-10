@@ -26,16 +26,16 @@ local function io_elite_player_complete_activity(player,groupID,difficulty)
 	return false
 end
 
-local function rio_elitism_raid_filter_toggle(profile)
+local function rio_elitism_raid_filter_toggle(profile, rio_elite)
 	local anactivity = profile.a.activity
 	local groupid = profile.a.group
-	if profile.a.category == 3 and anactivity and anactivity ~= 0 and not profile.rio_disable and profile.rio_elite ~= nil then
+	if profile.a.category == 3 and anactivity and anactivity ~= 0 and not profile.rio_disable and rio_elite ~= nil then
 		local difficulty = RIO.lfgActivityDifficulty(anactivity)
 		if difficulty == nil then
 			return
 		end
 		local tb = {true,groupid,difficulty}
-		if not profile.rio_elite then
+		if not rio_elite then
 			tb[1] = io_elite_player_complete_activity(UnitFullName("player"),groupid,difficulty)
 		end
 		return tb
@@ -47,7 +47,9 @@ LFG_OPT.RegisterSimpleFilterExpensive("find",function(info,profile,data)
 		return
 	end
 	return 1
-end,rio_elitism_raid_filter_toggle)
+end,function(profile)
+	return rio_elitism_raid_filter_toggle(profile,profile.a.rio_elite)
+end)
 
 LFG_OPT.armory["IO "..PLAYER_OFFLINE] = function(playername)
 	LFG_OPT.raider_io_name = playername
@@ -60,4 +62,6 @@ LFG_OPT.RegisterSimpleApplicantFilter("s",function(applicantID,i,profile,data)
 		return
 	end
 	return 1
-end,rio_elitism_raid_filter_toggle)
+end,function(profile)
+	return rio_elitism_raid_filter_toggle(profile,profile.s.rio_elite)
+end)

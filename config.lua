@@ -65,17 +65,22 @@ LFG_OPT:push("rioffline",{
 })
 
 LFG_OPT.Register("category_callbacks",nil,{function(find_args,f_args,s_args,category)
-	f_args.rio_elite =
-	{
-		name = "RIO Elitism",
-		type = "toggle",
-		tristate = true,
-		get = LFG_OPT.options_get_tristate_function,
-		set = LFG_OPT.options_set_tristate_function,
-	}
 	if category == 3 then
-		s_args.rio_elite = f_args.rio_elite
+		local f_args_rio_elite =
+		{
+			name = "RIO Elitism",
+			type = "toggle",
+			tristate = true,
+		}
+		local s_args_rio_elite = LFG_OPT.duplicate_table(f_args_rio_elite)
+		f_args_rio_elite.get = LFG_OPT.options_get_a_tristate_function
+		f_args_rio_elite.set = LFG_OPT.options_set_a_tristate_function
+		s_args_rio_elite.get = LFG_OPT.options_get_s_tristate_function
+		s_args_rio_elite.set = LFG_OPT.options_set_s_tristate_function
+		f_args.rio_elite = f_args_rio_elite
+		s_args.rio_elite = s_args_rio_elite
 	else
+		f_args.rio_elite = nil
 		s_args.rio_elite = nil
 	end
 end,function(find_args,f_args,s_args)
@@ -83,7 +88,7 @@ end,function(find_args,f_args,s_args)
 	s_args.rio_elite = nil
 end,2,3})
 
-LFG_OPT.Register("category_callbacks",nil,{function(find_args,f_args,s_args,category)
+LFG_OPT.Register("category_callbacks",nil,{function(_,f_args,s_args)
 	f_args.rio_disable =
 	{
 		name = DISABLE.." Raider.IO",
@@ -91,5 +96,16 @@ LFG_OPT.Register("category_callbacks",nil,{function(find_args,f_args,s_args,cate
 		get = LFG_OPT.options_get_function,
 		set = LFG_OPT.options_set_function,
 	}
-	s_args.rio_disable = f_args.rio_disable
+	local f_args_rio_disable =
+	{
+		name = DISABLE.." Raider.IO",
+		type = "toggle",
+	}
+	local s_args_rio_disable = LFG_OPT.duplicate_table(f_args_rio_disable)
+	f_args_rio_disable.get = LFG_OPT.options_get_a_function
+	f_args_rio_disable.set = LFG_OPT.options_set_a_function
+	s_args_rio_disable.get = LFG_OPT.options_get_s_function
+	s_args_rio_disable.set = LFG_OPT.options_set_s_function
+	f_args.rio_disable = f_args_rio_disable
+	s_args.rio_disable = s_args_rio_disable
 end})
