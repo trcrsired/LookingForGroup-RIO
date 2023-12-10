@@ -13,16 +13,10 @@ end)
 local C_LFGList_GetActivityGroupInfo =  C_LFGList.GetActivityGroupInfo
 local pool1 = {}
 local temp_tb = {}
-local IsShiftKeyDown = IsShiftKeyDown
 
 local function encounters(rse,cache,groupID,categoryID,shortName,target_name)
 	local name,server = strsplit("-",target_name)
-	local riodetails = LFG_OPT.db.profile.riodetails
-	if riodetails == nil then
-		if IsShiftKeyDown() then
-			riodetails = true
-		end
-	end
+	local riodetails = true
 	if categoryID == 2 then
 		if cache == nil or #cache ~= 2 then
 			cache = RIO.raw(1,name,server)
