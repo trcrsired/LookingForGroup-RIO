@@ -12,6 +12,7 @@
 ../RaiderIO/db/db_dungeons.lua
 ../RaiderIO/db/db_score_stats.lua
 ../RaiderIO/db/db_regions.lua
+../RaiderIO/db/db_realms.lua
 ../RaiderIO/db/db_score_tiers.lua
 ../RaiderIO/db/db_score_tiers_prev.lua
 ../RaiderIO/db/db_titles.lua
