@@ -117,6 +117,9 @@ function RIO.raw(data,player,server)
 	if server == nil then
 		server = GetNormalizedRealmName()
 	end
+	if server == nil then
+		return
+	end
 	local playerfullname = player.."-"..server
 	local dcdata = RIO.datacache[data]
 	local cacheddata = dcdata[playerfullname]
