@@ -5,7 +5,6 @@
 ## X-RAIDER-IO-LOD: 0
 
 ../RaiderIO/db/db_client_characters.lua
-../RaiderIO/db/db_client_colors.lua
 ../RaiderIO/db/db_client_config.lua
 ../RaiderIO/db/db_client_guilds.lua
 ../RaiderIO/db/db_client_replays.lua
