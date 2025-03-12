@@ -74,9 +74,15 @@ function RIO.raw(data,player,server)
 			RIO.exposed_rio_ns = RaiderIO.exposed_rio_ns
 		else
 			local region = RIO.region or GetCurrentRegion()
-			local GetAddOnMetadata = GetAddOnMetadata
-			local GetAddOnInfo = GetAddOnInfo
-			local IsAddOnLoaded = IsAddOnLoaded
+			local C_AddOns = C_AddOns
+			if C_AddOns == nil then
+				C_AddOns = _G
+			end
+			local LoadAddOn = C_AddOns.LoadAddOn
+			local GetNumAddOns = C_AddOns.GetNumAddOns
+			local GetAddOnMetadata = C_AddOns.GetAddOnMetadata
+			local IsAddOnLoaded = C_AddOns.IsAddOnLoaded
+			local GetAddOnInfo = C_AddOns.GetAddOnInfo
 			local raiderio_exist = select(5,GetAddOnInfo("RaiderIO")) ~= "MISSING"
 			for i = 1, GetNumAddOns() do
 				if not IsAddOnLoaded(i) then
