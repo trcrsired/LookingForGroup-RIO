@@ -1,4 +1,4 @@
-## Interface: 100205
+## Interface: 110007, 110100
 ## Author: cqwrteur
 ## Title: RIO LOD TW Raiding
 ## LoadOnDemand: 1
